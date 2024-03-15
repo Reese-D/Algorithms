@@ -1,3 +1,5 @@
+
+//NOTE: This can be much more efficiently solved with the 2 pointer approach.
 class MinimumSubArray
 {
 
@@ -15,6 +17,7 @@ class MinimumSubArray
         {
             total += copy[i];
             count++;
+            //Console.WriteLine("index: " + i + ", total: " + total + ", count: " + count);
             if(total >= target)
             {
                 return count;
@@ -41,10 +44,13 @@ class MinimumSubArray
         }
 
         int minPossibleArray = MinNonContiguousSubArrayLen(target, nums);
-
+        //Console.WriteLine("minPossibleArray size: " + minPossibleArray);
         if(minPossibleArray == 1)
         {
             return 1;
+        }else if(minPossibleArray == nums.Length)
+        {
+            return minPossibleArray;
         }
 
         for(int windowSize = minPossibleArray; windowSize < nums.Length; windowSize++)
@@ -54,10 +60,12 @@ class MinimumSubArray
             {
                 return windowSize;
             }
+            //Console.WriteLine("window size: " + windowSize);
             for(int i = 0; i < nums.Length - windowSize; i++)
             {
                 currentSum -= nums[i];
                 currentSum += nums[i + windowSize];
+                //System.Console.WriteLine("currentSum: " + currentSum);
                 if(currentSum >= target)
                 {
                     return windowSize;

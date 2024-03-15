@@ -1,4 +1,4 @@
-using System;
+/* using System;
 
 TestMethod();
 void TestMethod(){
@@ -14,7 +14,7 @@ class ThreeSum
     public static Comparer<(int key, List<int> values)> keyComparer = 
   Comparer<(int key, List<int> values)>.Create((a, b) => a.key.CompareTo(b.key));
 
-    public IList<IList<int>> ThreeSum(int[] nums) {
+    public static IList<IList<int>> ThreeSum(int[] nums) {
         List<(int key, List<int> values)> doubles = [];
         for(int i = 0; i < nums.Length; i++)
         {
@@ -57,4 +57,4 @@ class ThreeSum
         };
         return result.DistinctBy<IList<int>, int>(sorter).ToList();
     }
-}
+} */

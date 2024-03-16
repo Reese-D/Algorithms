@@ -1,7 +1,11 @@
 ﻿// See https://aka.ms/new-console-template for more information
+using System.Diagnostics;
 using System.Diagnostics.Metrics;
+using System.Runtime.Intrinsics.X86;
+using System.Security.AccessControl;
 using System.Text;
-using myConsole;
+using System.Xml;
+using Microsoft.VisualBasic;
 
 
 TestMethod();
@@ -15,90 +19,215 @@ void TestMethod(){
     SkylineProblem.GetSkyline([[1,5,3], [1,5,3], [1,5,3]]);
     PriorityQueueTest.TestMin();
     PriorityQueueTest.TestMax();
+    TestAVLTreeInsertions();
+    TestBinaryTreeRotations();
+    
+
+    System.Console.WriteLine("Test completed!");
+}
+
+
+//Just eyeball it for now
+void TestAVLTreeInsertions()
+{
+    AVLTree<int> myAVLTree = new AVLTree<int>();
+    myAVLTree.Insert(10);
+    myAVLTree.Insert(5);
+    myAVLTree.Insert(20);
+    myAVLTree.Insert(30);
+    //should still be balanced within 1 height, print to see
+    myAVLTree.PrintTree();
+
+    myAVLTree.Insert(40);
+    myAVLTree.PrintTree();
+    myAVLTree.Insert(50);
+    myAVLTree.PrintTree();
+}
+
+void TestBinaryTreeRotations()
+{
+    BinaryTrees.BinaryTree<int> root = new BinaryTrees.BinaryTree<int>(10)
+    {
+        Right = new BinaryTrees.BinaryTree<int>(20)
+        {
+            Right = new BinaryTrees.BinaryTree<int>(30)
+            {
+                Right = new BinaryTrees.BinaryTree<int>(40)
+                {
+                    Left = new BinaryTrees.BinaryTree<int>(35)
+                }
+            },
+            Left = new BinaryTrees.BinaryTree<int>(15)
+        }
+    };
+    //tree looks like this
+    /*
+        10
+         \
+         20
+        /  \
+       15  30
+             \
+             40
+             /
+            35
+    */
+    int firstRotationResult = BinaryTrees.BinaryTree<int>.RotateRight(root.Right.Right.Right, root.Right.Right).Data;
+    /*
+      after left rotation should make it look like this
+        10
+         \
+         20
+        /  \
+       15  30
+             \
+             35
+               \
+               40 
+    */
+    int secondRotationResult = BinaryTrees.BinaryTree<int>.RotateLeft(root.Right.Right, root.Right).Data;
+    /*
+      after right rotation should make it look like this
+        10
+         \
+         20
+        /  \
+       15  35
+          /  \
+         30   40
+    */
+    Debug.Assert(root.Data == 10);
+    Debug.Assert(root.Right?.Data == 20);
+    Debug.Assert(root.Right?.Left.Data == 15);
+    Debug.Assert(root.Right?.Right?.Data == 35);
+    Debug.Assert(root.Right?.Right?.Left?.Data == 30);
+    Debug.Assert(root.Right?.Right?.Right?.Data == 40);
+
+    Debug.Assert(firstRotationResult == 35);
+    Debug.Assert(secondRotationResult == 35);
+
+    //exact same scenario, creation and asserts are identical. Just using a RotateRightLeft instead of a separete rotate right rotate left
+    root = new BinaryTrees.BinaryTree<int>(10)
+    {
+        Right = new BinaryTrees.BinaryTree<int>(20)
+        {
+            Right = new BinaryTrees.BinaryTree<int>(30)
+            {
+                Right = new BinaryTrees.BinaryTree<int>(40)
+                {
+                    Left = new BinaryTrees.BinaryTree<int>(35)
+                }
+            },
+            Left = new BinaryTrees.BinaryTree<int>(15)
+        }
+    };
+
+    var result  = BinaryTrees.BinaryTree<int>.RotateRightLeft(root.Right.Right, root.Right).Data;
+
+    Debug.Assert(root.Data == 10);
+    Debug.Assert(root.Right?.Data == 20);
+    Debug.Assert(root.Right?.Left.Data == 15);
+    Debug.Assert(root.Right?.Right?.Data == 35);
+    Debug.Assert(root.Right?.Right?.Left?.Data == 30);
+    Debug.Assert(root.Right?.Right?.Right?.Data == 40);
+
+    Debug.Assert(result == 35);
+
+    //Now try a LeftRight since we haven't tested that yet. No graphic, sorry.
+    root.Right.Left.Right = new BinaryTrees.BinaryTree<int>(17);
+
+    BinaryTrees.BinaryTree<int>.RotateLeftRight(root.Right, root);
+
+    Debug.Assert(root.Data == 10);
+    Debug.Assert(root.Right?.Data == 17);
+    Debug.Assert(root.Right?.Left?.Data == 15);
+    Debug.Assert(root.Right?.Right?.Data == 20);
+    Debug.Assert(root.Right?.Right?.Right?.Data == 35);
+    Debug.Assert(root.Right?.Right?.Right?.Left?.Data == 30);
+    Debug.Assert(root.Right?.Right?.Right?.Right?.Data == 40);
 }
 
 
 
-namespace myConsole
-{
 
-    class Test{
 
-        public class CharToken
+class ExampleProblem{
+
+    public class CharToken
+    {
+        public CharToken(IEnumerable<char> value) { Value = value;}
+        public IEnumerable<char> Value{get; private set;}
+    }
+
+    public class RecursiveToken
+    {
+        public RecursiveToken(CharToken token, int multiplier = 1)
         {
-            public CharToken(IEnumerable<char> value) { Value = value;}
-            public IEnumerable<char> Value{get; private set;}
+            Value = string.Concat(Enumerable.Repeat(token.ToString(), multiplier));
+        }
+        public RecursiveToken(RecursiveToken token, int multiplier)
+        {
+            Value = string.Concat(Enumerable.Repeat(token.ToString(), multiplier));
         }
 
-        public class RecursiveToken
-        {
-            public RecursiveToken(CharToken token, int multiplier = 1)
-            {
-                Value = string.Concat(Enumerable.Repeat(token.ToString(), multiplier));
-            }
-            public RecursiveToken(RecursiveToken token, int multiplier)
-            {
-                Value = string.Concat(Enumerable.Repeat(token.ToString(), multiplier));
-            }
+        public string Value{get;private set;}
+    }
 
-            public string Value{get;private set;}
+    public IEnumerable<char> parseTokens(IEnumerable<char> input)
+    {
+        var stringVersion = new String(input.ToArray());
+        if(stringVersion == "")
+        {
+            return [];
         }
-
-        public IEnumerable<char> parseTokens(IEnumerable<char> input)
+        char firstChar = stringVersion.ElementAt(0);
+        var newInput = stringVersion.ToList();
+        if(char.IsLetter(firstChar))
         {
-            var stringVersion = new String(input.ToArray());
-            if(stringVersion == "")
-            {
-                return [];
-            }
-            char firstChar = stringVersion.ElementAt(0);
-            var newInput = stringVersion.ToList();
-            if(char.IsLetter(firstChar))
-            {
-                (CharToken token, IEnumerable<char> remainder) = parseCharacters(newInput);
-                return token.Value.Concat(parseTokens(remainder));
-            }
-            else if(char.IsDigit(firstChar))
-            {
-                (RecursiveToken token, IEnumerable<char> remainder) = parseRecursive(newInput);
-                return token.Value.Concat(parseTokens(remainder));
-            }
-            else{
-                throw new NotImplementedException();
-            }
+            (CharToken token, IEnumerable<char> remainder) = parseCharacters(newInput);
+            return token.Value.Concat(parseTokens(remainder));
         }
-
-        public (CharToken token, IEnumerable<char> remainder) parseCharacters(IEnumerable<char> input)
+        else if(char.IsDigit(firstChar))
         {
-            (var result, var remainder) = TakeWhileBoth(input, char.IsLetter);
-            var token = new CharToken(result);
-            return(token, remainder);
+            (RecursiveToken token, IEnumerable<char> remainder) = parseRecursive(newInput);
+            return token.Value.Concat(parseTokens(remainder));
         }
-
-        public (RecursiveToken token, IEnumerable<char> remainder) parseRecursive(IEnumerable<char> input)
-        {
-            (var multiplierString, var remainder) = TakeWhileBoth(input, char.IsDigit);
-            var multiplier = int.Parse(multiplierString.ToArray());
-            int count = 0;
-            Func<char, bool> filterBrackets = (char input) =>
-            {
-                if(input == '[') count++;
-                if(input == ']') count--;
-                return count > 0;
-            };
-            (var substring, var remainderSecond) = TakeWhileBoth(remainder, filterBrackets);
-            substring = substring.Skip(1); //trim []
-            remainderSecond = remainderSecond.Skip(1);
-
-            return (new RecursiveToken(new CharToken(parseTokens(substring)), multiplier), remainderSecond);
-        }
-
-        public static (IEnumerable<T> result, IEnumerable<T> remainder) TakeWhileBoth<T>(IEnumerable<T> input, Func<T, bool> filter)
-        {
-            return (input.TakeWhile(filter), input.SkipWhile(filter));
+        else{
+            throw new NotImplementedException();
         }
     }
+
+    public (CharToken token, IEnumerable<char> remainder) parseCharacters(IEnumerable<char> input)
+    {
+        (var result, var remainder) = TakeWhileBoth(input, char.IsLetter);
+        var token = new CharToken(result);
+        return(token, remainder);
+    }
+
+    public (RecursiveToken token, IEnumerable<char> remainder) parseRecursive(IEnumerable<char> input)
+    {
+        (var multiplierString, var remainder) = TakeWhileBoth(input, char.IsDigit);
+        var multiplier = int.Parse(multiplierString.ToArray());
+        int count = 0;
+        Func<char, bool> filterBrackets = (char input) =>
+        {
+            if(input == '[') count++;
+            if(input == ']') count--;
+            return count > 0;
+        };
+        (var substring, var remainderSecond) = TakeWhileBoth(remainder, filterBrackets);
+        substring = substring.Skip(1); //trim []
+        remainderSecond = remainderSecond.Skip(1);
+
+        return (new RecursiveToken(new CharToken(parseTokens(substring)), multiplier), remainderSecond);
+    }
+
+    public static (IEnumerable<T> result, IEnumerable<T> remainder) TakeWhileBoth<T>(IEnumerable<T> input, Func<T, bool> filter)
+    {
+        return (input.TakeWhile(filter), input.SkipWhile(filter));
+    }
 }
+
 
 
 public class Stamps{

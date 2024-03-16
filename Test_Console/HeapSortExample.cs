@@ -1,14 +1,12 @@
 
-class Heap<T>
+class Heap<T>(T data)
 {
-    T data;
-    Heap<T> left;
-    Heap<T> right;
+    T Data = data;
+    Heap<T> Left;
+    Heap<T> Right;
 }
 
 class MinHeapSort
 {
-
-    
 
 }

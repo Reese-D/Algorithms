@@ -42,6 +42,32 @@ namespace BinaryTrees
             return child;
         }
 
+        
+        public static int GetHeight(BinaryTreeWithParent<T>? node)
+        {
+            if(node == null) {return 0;}
+            return 1 + Math.Max(GetHeight(node.Left), GetHeight(node.Right));
+        }
+
+        public static BinaryTreeWithParent<T> Insert(BinaryTreeWithParent<T> node, T data)
+        {
+            var side = data.CompareTo(node.Data) > 0;
+            var child = side == LEFT ? node.Left : node.Right;
+
+            if(child != null) {return BinaryTreeWithParent<T>.Insert(child, data);}
+            child = new BinaryTreeWithParent<T>(data)
+            {
+                Parent = node
+            };
+            if (side == LEFT)
+            {
+                node.Left = child;
+            } else {
+                node.Right = child;
+            }
+            return child;
+        }
+
         public static BinaryTreeWithParent<T> RotateLeft(BinaryTreeWithParent<T> node)
         {
             return Rotate(node, LEFT);

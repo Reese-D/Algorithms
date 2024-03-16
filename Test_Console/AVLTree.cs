@@ -14,25 +14,7 @@ class AVLTree<T> where T : IComparable
             Root = new BinaryTreeWithParent<T>(data);
             return Root;
         }
-        return Add(Root, data);
-    }
-
-    private BinaryTreeWithParent<T> Add(BinaryTreeWithParent<T> node, T data)
-    {
-        var side = data.CompareTo(node.Data) > 0;
-        var child = side == LEFT ? node.Left : node.Right;
-
-        if(child != null) {return Add(child, data);}
-        child = new BinaryTreeWithParent<T>(data)
-        {
-            Parent = node
-        };
-        if (side == LEFT)
-        {
-            node.Left = child;
-        } else {
-            node.Right = child;
-        }
+        var child = BinaryTreeWithParent<T>.Insert(Root, data);
         CheckBalance(child);
         return child;
     }
@@ -44,21 +26,15 @@ class AVLTree<T> where T : IComparable
         CheckBalance(node.Parent);
     }
 
-    private static int GetHeight(BinaryTreeWithParent<T>? node)
-    {
-        if(node == null) {return 0;}
-        return 1 + Math.Max(GetHeight(node.Left), GetHeight(node.Right));
-    }
-
     private void Rebalance(BinaryTreeWithParent<T> node)
     {
-        var difference = GetHeight(node.Left) - GetHeight(node.Right);
+        var difference = BinaryTreeWithParent<T>.GetHeight(node.Left) - BinaryTreeWithParent<T>.GetHeight(node.Right);
         if(Math.Abs(difference) <= 1) {return;}
         //if difference > 1 we must at least have a grandchild, so rotations shouldn't throw.
 
         var imbalancedSide = difference > 0 ? LEFT : RIGHT;
         var imbalancedChild = imbalancedSide == LEFT ? node.Left : node.Right;
-        var imabalancedGrandSide = GetHeight(imbalancedChild?.Left) - GetHeight(imbalancedChild?.Right) > 0 ? LEFT : RIGHT;
+        var imabalancedGrandSide = BinaryTreeWithParent<T>.GetHeight(imbalancedChild?.Left) - BinaryTreeWithParent<T>.GetHeight(imbalancedChild?.Right) > 0 ? LEFT : RIGHT;
         BinaryTreeWithParent<T> result;
         if(imbalancedSide == imabalancedGrandSide == LEFT){
             result = BinaryTreeWithParent<T>.RotateRight(node);
@@ -69,7 +45,7 @@ class AVLTree<T> where T : IComparable
         } else {
             result = BinaryTreeWithParent<T>.RotateRightLeft(node);
         }
-        
+
         //after rotating we will have a new root, returned by the rotation function
         if(node == Root)
         {

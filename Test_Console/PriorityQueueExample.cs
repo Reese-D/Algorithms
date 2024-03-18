@@ -200,6 +200,27 @@ class MaxPriorityQueue<T> : IPriorityQueue<T> where T : IComparable
     }
 }
 
+class PriorityQueue<T>(Func<T, T, bool> comparator) : IPriorityQueue<T> where T : IComparable
+{
+    readonly Heap<T> Data = new(comparator);
+
+    public T Delete()
+    {
+        return Data.Delete();
+    }
+
+    public T Find()
+    {
+        return Data.Find();
+    }
+
+    public T Insert(T item)
+    {
+        Data.Insert(item);
+        return item;
+    }
+}
+
 
 
 
@@ -263,6 +284,43 @@ class PriorityQueueTest
         Debug.Assert(myPriorityQueue.Find() == 232);
         Debug.Assert(myPriorityQueue.Delete() == 232);
         Debug.Assert(myPriorityQueue.Find() == 128);
+    }
+
+    public static void TestHeapBasedPriorityQueue()
+    {
+        //copy of max priority queue test
+        PriorityQueue<string> myMaxPriorityQueue = new((a,b) => a.Length > b.Length);
+        myMaxPriorityQueue.Insert("Hello");
+        Debug.Assert(myMaxPriorityQueue.Find() == "Hello"); 
+        myMaxPriorityQueue.Insert("She");
+        Debug.Assert(myMaxPriorityQueue.Find() == "Hello"); 
+        myMaxPriorityQueue.Insert("Tiger");
+        myMaxPriorityQueue.Insert("Bamboo");
+        myMaxPriorityQueue.Insert("");
+        myMaxPriorityQueue.Insert("Cat");
+        myMaxPriorityQueue.Insert("Cat");
+        myMaxPriorityQueue.Insert("Miracles");
+        myMaxPriorityQueue.Insert("Shrewd Diplomat");
+        myMaxPriorityQueue.Insert("Constantinople");
+        myMaxPriorityQueue.Insert("Dog");
+        myMaxPriorityQueue.Insert("Sixer");
+        myMaxPriorityQueue.Insert("Soot");
+
+        Debug.Assert(myMaxPriorityQueue.Find() == "Shrewd Diplomat"); 
+        Debug.Assert(myMaxPriorityQueue.Find() == "Shrewd Diplomat");
+
+        Debug.Assert(myMaxPriorityQueue.Delete() == "Shrewd Diplomat");
+        Debug.Assert(myMaxPriorityQueue.Find() == "Constantinople");
+        Debug.Assert(myMaxPriorityQueue.Delete() == "Constantinople");
+        Debug.Assert(myMaxPriorityQueue.Delete() == "Miracles");
+        Debug.Assert(myMaxPriorityQueue.Delete() == "Bamboo");
+        //if we delete again, could be sixer, tiger, or hello since they're equivalent in our comparator.
+        //We could have checked alphabetical order when length matches in the comparator if we wished it to be deterministic.
+        //We didn't,so just delete all 3 and check the next item is Soot
+        myMaxPriorityQueue.Delete();
+        myMaxPriorityQueue.Delete();
+        myMaxPriorityQueue.Delete();
+        Debug.Assert(myMaxPriorityQueue.Find() == "Soot");
     }
 }
 

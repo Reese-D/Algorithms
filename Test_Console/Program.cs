@@ -19,6 +19,7 @@ void TestMethod(){
     SkylineProblem.GetSkyline([[1,5,3], [1,5,3], [1,5,3]]);
     PriorityQueueTest.TestMin();
     PriorityQueueTest.TestMax();
+    PriorityQueueTest.TestHeapBasedPriorityQueue();
     TestAVLTreeInsertions();
     TestBinaryTreeRotations();
     

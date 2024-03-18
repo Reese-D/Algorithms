@@ -57,13 +57,13 @@ class Heap<T> where T : IComparable
     //if all items were compared with comparator, returns the item that was always returned true when it was in the first position
     //For example, if the comparator was (a,b) => return a <= b then this would be a MIN heap
     //Best fit is always the first item, in a min heap its the smallest item, in a max heap the largest, etc.
-    public T GetBestFit()
+    public T Find()
     {
         return Nodes[0];
     }
 
     //O(N), heaps aren't binary trees so we can't search through them efficiently to find the key to delete
-    public int? Find(T data)
+    public int? FindIndex(T data)
     {
         for(int i = 0; i < Count; i++)
         {
@@ -78,43 +78,42 @@ class Heap<T> where T : IComparable
 
     //O(N), worst case N (last item is deleted, search through whole array to find it)
     //best case log(n), it's the first item and we just bubble down
-    public void Delete(T data)
+    public T Delete()
     {
-        var index = Find(data);
-        if(index == null) { return; }
-
-        BubbleDown(index.Value);
+        var result = Nodes[0];
+        //swap root and the very last item, then decrement so that the item is outside of bounds. It's now deleted.
+        (Nodes[0], Nodes[Count - 1]) = (Nodes[Count - 1], Nodes[0]);
         Count--;
+
+        //our new head however most likely isn't valid, so bubble it down to the correct position
+        BubbleDown(0);
+        
+        return result;
     }
 
     //O(log(N))
     public void BubbleDown(int index)
     {
-        
         var leftChild = index * 2 + 1;
         var rightChild = index * 2 + 2;
 
         //if we have no children
         if(leftChild >= Count){return;}
+        int dominantchild;
+        if(rightChild >= Count)
+        {
+            dominantchild = leftChild;
+        } else{
+            dominantchild = Comparator(Nodes[leftChild], Nodes[rightChild]) ? leftChild : rightChild;
+        }
 
         //Left isn't out of bounds, but it's smaller so right still could be.
-        if (rightChild >= Count || Comparator(Nodes[leftChild], Nodes[rightChild]))
+        if (Comparator(Nodes[dominantchild], Nodes[index]))
         {
-            (Nodes[index], Nodes[leftChild]) = (Nodes[leftChild], Nodes[index]);
-            BubbleDown(leftChild);
+            (Nodes[index], Nodes[dominantchild]) = (Nodes[dominantchild], Nodes[index]);
+            BubbleDown(dominantchild);
         //likewise if right child doesn't exist, or left child is a beter fit, swap left child.
-        } else
-        {
-            (Nodes[index], Nodes[rightChild]) = (Nodes[rightChild], Nodes[index]);
-            BubbleDown(rightChild);
         }
-    }
-
-    //O(log(N))
-    //Find will return on first item, then it will bubble down the whole tree which is log(N) operation.
-    public void DeleteBestFit()
-    {
-        Delete(Nodes[0]);
     }
 
     public void Print()
@@ -150,32 +149,31 @@ class TestHeap{
         myHeap.Insert(19);
         myHeap.Insert(1);
         Debug.Assert(string.Compare(myHeap.ToString(","), "1,4,2,12,19,5") == 0);
-        Debug.Assert(myHeap.GetBestFit() == 1);
+        Debug.Assert(myHeap.Find() == 1);
 
         //test basic deletion
-        myHeap.DeleteBestFit();
+        myHeap.Delete();
         Debug.Assert(string.Compare(myHeap.ToString(","), "2,4,5,12,19") == 0);
-        myHeap.Delete(19);
-        Debug.Assert(string.Compare(myHeap.ToString(","), "2,4,5,12") == 0);
-        myHeap.DeleteBestFit();
-        Debug.Assert(string.Compare(myHeap.ToString(","), "4,12,5") == 0);
-        Debug.Assert(myHeap.GetBestFit() == 4);
+        myHeap.Delete();
+       
+        Debug.Assert(string.Compare(myHeap.ToString(","),  "4,12,5,19") == 0);
+        Debug.Assert(myHeap.Find() == 4);
 
         //test that array works with duplicates
         myHeap.Insert(5);
-        Debug.Assert(string.Compare(myHeap.ToString(","), "4,5,5,12") == 0);
+        Debug.Assert(string.Compare(myHeap.ToString(","), "4,5,5,19,12") == 0);
         myHeap.Insert(12);
-        Debug.Assert(string.Compare(myHeap.ToString(","), "4,5,5,12,12") == 0);
+        Debug.Assert(string.Compare(myHeap.ToString(","), "4,5,5,19,12,12") == 0);
         myHeap.Insert(2);
-        Debug.Assert(string.Compare(myHeap.ToString(","), "2,5,4,12,12,5") == 0);
+        Debug.Assert(string.Compare(myHeap.ToString(","), "2,5,4,19,12,12,5") == 0);
         myHeap.Insert(4);
-        Debug.Assert(string.Compare(myHeap.ToString(","), "2,5,4,12,12,5,4") == 0);
-        Debug.Assert(myHeap.GetBestFit() == 2);
+        Debug.Assert(string.Compare(myHeap.ToString(","), "2,4,4,5,12,12,5,19") == 0);
+        Debug.Assert(myHeap.Find() == 2);
 
         //check array expands properly (no exception thrown)
         myHeap.Insert(19);
         var currentHeap = myHeap.ToString(",");
-        Debug.Assert(string.Compare(currentHeap, "2,5,4,12,12,5,4,19") == 0);
+        Debug.Assert(string.Compare(myHeap.ToString(","),"2,4,4,5,12,12,5,19,19") == 0);
         int currentSize = currentHeap.Length;
         myHeap.Insert(1);
         myHeap.Insert(1);
@@ -189,6 +187,6 @@ class TestHeap{
         myHeap.Insert(1);
         myHeap.Insert(1);
         Debug.Assert(myHeap.ToString(",").Length == 22 + currentSize);
-        Debug.Assert(myHeap.GetBestFit() == 1);
+        Debug.Assert(myHeap.Find() == 1);
     }
 }

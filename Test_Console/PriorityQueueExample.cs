@@ -56,7 +56,7 @@ class MinPriorityQueue<T> : IPriorityQueue<T> where T : IComparable
 
         if(currentSize + 1 == maxSize)
         {
-            ExpandArray();
+            maxSize = ArrayHelper.ExpandArray(maxSize, ref Data);
         }
         Data[currentSize] = item;
         currentSize++;
@@ -102,15 +102,6 @@ class MinPriorityQueue<T> : IPriorityQueue<T> where T : IComparable
     public T Find()
     {
         return currentMinimum;
-    }
-
-    private void ExpandArray()
-    {
-        maxSize *= 2;
-        T[] newArray = [];
-        Array.Resize(ref newArray, maxSize);
-        Array.Copy(Data, newArray, Data.Length);
-        Data = newArray;
     }
 }
 

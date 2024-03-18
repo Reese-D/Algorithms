@@ -15,7 +15,7 @@ void TestMethod(){
     //Console.WriteLine(new string(tokens.ToArray()));
     var result = Stamps.MovesToStamp("abca", "aabcaca");
     System.Console.WriteLine(result);
-
+    TestHeap.Test();
     SkylineProblem.GetSkyline([[1,5,3], [1,5,3], [1,5,3]]);
     PriorityQueueTest.TestMin();
     PriorityQueueTest.TestMax();

@@ -42,6 +42,18 @@ void TestAVLTreeInsertions()
     myAVLTree.PrintTree();
     myAVLTree.Insert(50);
     myAVLTree.PrintTree();
+
+    //middle node
+    myAVLTree.Delete(40);
+    myAVLTree.PrintTree();
+
+    //leaf
+    myAVLTree.Delete(20);
+    myAVLTree.PrintTree();
+
+    //root
+    myAVLTree.Delete(30);
+    myAVLTree.PrintTree();
 }
 
 void TestBinaryTreeRotations()

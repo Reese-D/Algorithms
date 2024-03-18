@@ -5,18 +5,37 @@ class AVLTree<T> where T : IComparable
     private const bool RIGHT = BinaryTreeWithParent<T>.RIGHT;
     private const bool LEFT = BinaryTreeWithParent<T>.LEFT;
     BinaryTreeWithParent<T>? Root;
+    
+    private int CurrentSize = 0;
     public AVLTree(){}
     
     public BinaryTreeWithParent<T> Insert(T data)
     {
+        CurrentSize++;
         if(Root == null)
         {
             Root = new BinaryTreeWithParent<T>(data);
             return Root;
         }
-        var child = BinaryTreeWithParent<T>.Insert(Root, data);
+        var child = Root.Insert(data);
         CheckBalance(child);
         return child;
+    }
+    
+    public BinaryTreeWithParent<T>? Delete(T data)
+    {
+        var result = Root?.Delete(data);
+        if(result == null) {return result;}
+
+        CurrentSize--;
+        if(result == Root && CurrentSize == 0)
+        {
+            Root = null;
+        }
+        
+        //Shouldn't matter if we check left or right, one is our replacement and one is lower (or null)
+        CheckBalance(result?.Right);
+        return result;
     }
 
     private void CheckBalance(BinaryTreeWithParent<T>? node)
@@ -36,9 +55,9 @@ class AVLTree<T> where T : IComparable
         var imbalancedChild = imbalancedSide == LEFT ? node.Left : node.Right;
         var imabalancedGrandSide = BinaryTreeWithParent<T>.GetHeight(imbalancedChild?.Left) - BinaryTreeWithParent<T>.GetHeight(imbalancedChild?.Right) > 0 ? LEFT : RIGHT;
         BinaryTreeWithParent<T> result;
-        if(imbalancedSide == imabalancedGrandSide == LEFT){
+        if(imbalancedSide == imabalancedGrandSide && imabalancedGrandSide == LEFT){
             result = BinaryTreeWithParent<T>.RotateRight(node);
-        } else if(imbalancedSide == imabalancedGrandSide == RIGHT){
+        } else if(imbalancedSide ==  imabalancedGrandSide && imabalancedGrandSide == RIGHT){
             result = BinaryTreeWithParent<T>.RotateLeft(node);
         } else if(imbalancedSide == LEFT && imabalancedGrandSide == RIGHT){
             result = BinaryTreeWithParent<T>.RotateLeftRight(node);

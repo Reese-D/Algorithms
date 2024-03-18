@@ -1,3 +1,5 @@
+using System.Globalization;
+
 namespace BinaryTrees
 {
     class BinaryTreeWithParent<T>(T data) where T : IComparable
@@ -42,28 +44,109 @@ namespace BinaryTrees
             return child;
         }
 
-        
         public static int GetHeight(BinaryTreeWithParent<T>? node)
         {
             if(node == null) {return 0;}
             return 1 + Math.Max(GetHeight(node.Left), GetHeight(node.Right));
         }
 
-        public static BinaryTreeWithParent<T> Insert(BinaryTreeWithParent<T> node, T data)
+        private BinaryTreeWithParent<T> DeleteNode()
         {
-            var side = data.CompareTo(node.Data) > 0;
-            var child = side == LEFT ? node.Left : node.Right;
+            bool childSide  = (Parent?.Left == this) ? LEFT : RIGHT;
+            if(Left == null && Right == null)
+            {
+                //we're a leaf, just delete reference to ourself
+                if(Parent != null)
+                {
+                    if(childSide == LEFT)
+                    {
+                        Parent.Left = null;
+                    } else {
+                        Parent.Right = null;
+                    }
+                }
+                //we might be root if parent was null, just return ourselves regardless
+                return this;
+            }
 
-            if(child != null) {return BinaryTreeWithParent<T>.Insert(child, data);}
+            //we're not a leaf, copy a childs value and delete them instead
+            //left side picked arbitrarily, either works.
+            if(Left != null)
+            {
+                Data = Left.Data;
+                return Left.DeleteNode();
+            } else {
+                Data = Right.Data;
+                return Right.DeleteNode();
+            }
+        }
+        //Unused: This was an old implementation that works correctly, but is a bit verbose
+        private BinaryTreeWithParent<T> DeleteNode_()
+        {
+            bool childSide  = (Parent?.Left == this) ? LEFT : RIGHT;
+
+            //choose right arbitrarily, could potentially pick on tree height or something
+            var chosenChild = Right != null ? Right : Left;
+            var oppositeChild = Right != null ? Left : Right;
+
+            //we might have to remove a node to promote chosen child
+            BinaryTreeWithParent<T>? removed = chosenChild?.Left;
+
+            if(chosenChild != null)
+            {
+                chosenChild.Parent = Parent;
+                
+                if(oppositeChild != null)
+                {
+                    chosenChild.Left = oppositeChild;
+                }
+            }
+            
+            if(oppositeChild != null){oppositeChild.Parent = chosenChild;}
+            
+            if(Parent != null)
+            {
+                if(childSide == LEFT)
+                {
+                    Parent.Left = chosenChild;
+                } else {
+                    Parent.Right = chosenChild;
+                }
+            }
+
+            //if we replaced our chosen child's left node in promotion, insert it back in at our chosen child level
+            if(removed != null && oppositeChild != null && chosenChild != null)
+            {
+                chosenChild.Insert(removed.Data);
+            }
+            
+            return this;
+        }
+
+        public BinaryTreeWithParent<T>? Delete(T data)
+        {
+            if(data.CompareTo(Data) == 0)
+            {
+                return DeleteNode();
+            }
+            return Right?.Delete(data) ?? Left?.Delete(data);
+        }
+
+        public BinaryTreeWithParent<T> Insert( T data)
+        {
+            var side = data.CompareTo(Data) > 0;
+            var child = side == LEFT ? Left : Right;
+
+            if(child != null) {return child.Insert(data);}
             child = new BinaryTreeWithParent<T>(data)
             {
-                Parent = node
+                Parent = this
             };
             if (side == LEFT)
             {
-                node.Left = child;
+                Left = child;
             } else {
-                node.Right = child;
+                Right = child;
             }
             return child;
         }
@@ -85,7 +168,6 @@ namespace BinaryTrees
             Rotate(node.Left, LEFT);
             return Rotate(node, RIGHT);
         }
-
         public static BinaryTreeWithParent<T> RotateRightLeft(BinaryTreeWithParent<T> node)
         {
             if(node.Right == null || node.Right.Left == null)

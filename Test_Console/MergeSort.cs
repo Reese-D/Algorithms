@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using Microsoft.VisualBasic;
 
 class Node<T>(T data){
@@ -6,7 +7,6 @@ class Node<T>(T data){
 }
 interface IMergeSortable<T> where T : IComparable
 {
-    (IMergeSortable<T>? firstHalf, IMergeSortable<T>? secondHalf) Split();
     Node<T>? Head{get; set;}
     void Insert(Node<T> node);
 }
@@ -53,52 +53,16 @@ class SimpleSingleList<T> : IMergeSortable<T> where T : IComparable
         Head  = node;
     }
 
-    public void Print()
+    public override string ToString()
     {
+        string result = "";
         var current = Head;
         while(current != null)
         {
-            System.Console.Write(current.Data + ",");
+            result += current.Data + ((current.Next != null) ? "," : "");
             current = current.Next;
         }
-        System.Console.Write("\r\n");
-    }
-
-    public (IMergeSortable<T> firstHalf, IMergeSortable<T> secondHalf) Split()
-    {
-        if(Head == null)
-        {
-            return(new SimpleSingleList<T>(), new SimpleSingleList<T>());
-        }
-        Node<T> fast = Head;
-        Node<T>? slow = Head;
-        int count = 0;
-        while(fast.Next != null)
-        {
-            fast = fast.Next;
-            count++;
-            if(count % 2 == 0)
-            {
-                slow = slow.Next;
-            }
-        }
-        //slow should now be at midpoint
-
-        //break our list in half
-        Node<T> temp = slow;
-        slow = slow.Next; //slow may become null here
-        temp.Next = null;
-
-        SimpleSingleList<T> secondHalf;
-
-        
-        if(slow != null)
-        {
-            secondHalf = new SimpleSingleList<T>(slow);
-        } else{
-            secondHalf = new SimpleSingleList<T>();
-        }
-       return (new SimpleSingleList<T>(Head), secondHalf);
+        return result;
     }
 }
 
@@ -106,7 +70,7 @@ class MergeSort
 {
     public static IMergeSortable<T>? Sort<T>(IMergeSortable<T> Sortable, bool flipSort = true) where T : IComparable
     {
-        (var firstHalf, var secondHalf) = Sortable.Split();
+        (var firstHalf, var secondHalf) = Split(Sortable);
 
         if(firstHalf != null && firstHalf?.Head?.Next != null) {firstHalf = MergeSort.Sort(firstHalf, flipSort == false);};
         if(secondHalf != null && secondHalf?.Head?.Next != null){secondHalf = MergeSort.Sort(secondHalf, flipSort == false);};
@@ -161,5 +125,62 @@ class MergeSort
         while(second != null){second = insert(second);}
 
         return firstHalf;
+    }
+
+    private static (IMergeSortable<T> firstHalf, IMergeSortable<T> secondHalf) Split<T>(IMergeSortable<T> node)  where T : IComparable
+    {
+        if(node.Head == null)
+        {
+            return(new SimpleSingleList<T>(), new SimpleSingleList<T>());
+        }
+        Node<T> fast = node.Head;
+        Node<T>? slow = node.Head;
+        int count = 0;
+        while(fast.Next != null)
+        {
+            fast = fast.Next;
+            count++;
+            if(count % 2 == 0)
+            {
+                slow = slow.Next;
+            }
+        }
+        //slow should now be at midpoint
+
+        //break our list in half
+        Node<T> temp = slow;
+        slow = slow.Next; //slow may become null here
+        temp.Next = null;
+
+        SimpleSingleList<T> secondHalf;
+
+        
+        if(slow != null)
+        {
+            secondHalf = new SimpleSingleList<T>(slow);
+        } else{
+            secondHalf = new SimpleSingleList<T>();
+        }
+       return (new SimpleSingleList<T>(node.Head), secondHalf);
+    }
+}
+
+class MergeSortTests
+{
+    public static void TestSimpleListSort()
+    {
+            var input = new SimpleSingleList<int>();
+            input.Insert(5);
+            input.Insert(12);
+            input.Insert(22);
+            input.Insert(1);
+            input.Insert(2);
+            input.Insert(104);
+            input.Insert(12);
+            input.Insert(0);
+            var mergeSorted = MergeSort.Sort(input);
+            var result = ((SimpleSingleList<int>?)mergeSorted).ToString();;
+
+            Debug.Assert(string.Compare(result, "0,1,2,5,12,12,22,104") == 0);
     }
 }

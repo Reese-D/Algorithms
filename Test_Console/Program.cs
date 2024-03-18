@@ -22,8 +22,18 @@ void TestMethod(){
     PriorityQueueTest.TestHeapBasedPriorityQueue();
     TestAVLTreeInsertions();
     TestBinaryTreeRotations();
-    
-
+    HeapSortExample.PrintExample();
+    var input = new SimpleSingleList<int>();
+    input.Insert(5);
+    input.Insert(12);
+    input.Insert(22);
+    input.Insert(1);
+    input.Insert(2);
+    input.Insert(104);
+    input.Insert(12);
+    input.Insert(0);
+    var mergeSorted = MergeSort.Sort(input);
+    ((SimpleSingleList<int>?)mergeSorted)?.Print();
     System.Console.WriteLine("Test completed!");
 }
 

@@ -1,2 +1,13 @@
 bin/
 obj/
+
+#emacs_ignore
+*~
+\#*\#
+*\.el[c|d]
+.\#*
+
+# projectile files
+.projectile
+
+rust_algorithms/target
